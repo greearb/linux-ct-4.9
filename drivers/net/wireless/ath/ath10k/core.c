@@ -237,6 +237,7 @@ static const char *const ath10k_core_fw_feature_str[] = {
 	[ATH10K_FW_FEATURE_MFP_SUPPORT] = "mfp",
 	[ATH10K_FW_FEATURE_PEER_FLOW_CONTROL] = "peer-flow-ctrl",
 	[ATH10K_FW_FEATURE_WMI_10X_CT] = "wmi-10.x-CT",
+	[ATH10K_FW_FEATURE_CT_RXSWCRYPT] = "rxswcrypt-CT",
 };
 
 static unsigned int ath10k_core_get_fw_feature_str(char *buf,
