@@ -100,7 +100,13 @@ int ath10k_debug_get_et_sset_count(struct ieee80211_hw *hw,
 void ath10k_debug_get_et_stats(struct ieee80211_hw *hw,
 			       struct ieee80211_vif *vif,
 			       struct ethtool_stats *stats, u64 *data);
+
+void ath10k_dbg_save_fw_dbg_buffer(struct ath10k *ar, __le32 *buffer, int len);
 #else
+static inline void ath10k_dbg_save_fw_dbg_buffer(struct ath10k *ar,
+						 __le32 *buffer, int len)
+{
+}
 static inline int ath10k_debug_start(struct ath10k *ar)
 {
 	return 0;
@@ -176,7 +182,6 @@ void ath10k_dbg_dump(struct ath10k *ar,
 		     enum ath10k_debug_mask mask,
 		     const char *msg, const char *prefix,
 		     const void *buf, size_t len);
-void ath10k_dbg_save_fw_dbg_buffer(struct ath10k *ar, __le32 *buffer, int len);
 #else /* CONFIG_ATH10K_DEBUG */
 
 static inline int ath10k_dbg(struct ath10k *ar,
@@ -190,10 +195,6 @@ static inline void ath10k_dbg_dump(struct ath10k *ar,
 				   enum ath10k_debug_mask mask,
 				   const char *msg, const char *prefix,
 				   const void *buf, size_t len)
-{
-}
-static inline void ath10k_dbg_save_fw_dbg_buffer(struct ath10k *ar,
-						 __le32 *buffer, int len)
 {
 }
 #endif /* CONFIG_ATH10K_DEBUG */
