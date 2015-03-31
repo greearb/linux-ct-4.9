@@ -376,8 +376,6 @@ enum ath10k_hw_4addr_pad {
 						    * override w/module parm */
 #define TARGET_10X_AST_SKID_LIMIT_CT		(ath10k_modparam_target_num_peers_ct * TARGET_10X_NUM_PEER_AST)
 #define TARGET_10X_NUM_PEER_KEYS_CT             (WMI_MAX_KEY_INDEX + 1) /* 4 */
-/* These eat a fair chunk of memory on the firmware, so decrease it a bit. */
-#define TARGET_10X_NUM_MSDU_DESC_CT		808 /* must be multiple of 8 */
 
 /* Related to HTC buffers */
 /* return any credit immediately */
