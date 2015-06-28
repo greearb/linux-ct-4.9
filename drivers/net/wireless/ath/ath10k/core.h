@@ -989,6 +989,8 @@ struct ath10k {
 	struct net_device napi_dev;
 	struct napi_struct napi;
 
+	u8 ath10k_thresh62_ext; /* be sure to flush this to firmware after resets */
+
 	/* must be last */
 	u8 drv_priv[0] __aligned(sizeof(void *));
 };
