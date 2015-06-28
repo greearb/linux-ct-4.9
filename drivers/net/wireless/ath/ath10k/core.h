@@ -991,6 +991,8 @@ struct ath10k {
 	struct ath10k_thermal thermal;
 	struct ath10k_wow wow;
 
+	u8 ath10k_thresh62_ext; /* be sure to flush this to firmware after resets */
+
 	/* must be last */
 	u8 drv_priv[0] __aligned(sizeof(void *));
 };
