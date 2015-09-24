@@ -2234,7 +2234,7 @@ static void ath10k_peer_assoc_h_rate_overrides(struct ath10k *ar,
 	struct cfg80211_chan_def def;
 	enum nl80211_band band;
 	u32 ratemask;
-	int i, j;
+	int i;
 
 	if (! test_bit(ATH10K_FW_FEATURE_CT_RATEMASK,
 		       ar->running_fw->fw_file.fw_features))
