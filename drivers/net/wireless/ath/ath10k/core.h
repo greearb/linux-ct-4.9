@@ -1016,6 +1016,7 @@ struct ath10k {
 
 	/* Index 0 is for 5Ghz, index 1 is for 2.4Ghz, CT firmware only. */
 	/* be sure to flush this to firmware after resets */
+	/* Includes various other backdoor hacks as well. */
 	struct {
 		struct {
 #define MIN_CCA_PWR_COUNT 3
@@ -1027,6 +1028,7 @@ struct ath10k {
 			u8 enable_minccapwr_thresh;
 		} bands[2];
 		u8 thresh62_ext;
+		bool allow_ibss_amsdu;
 	} eeprom_overrides;
 
 	/* must be last */
