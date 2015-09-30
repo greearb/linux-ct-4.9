@@ -760,6 +760,10 @@ void ieee80211_tx_status(struct ieee80211_hw *hw, struct sk_buff *skb)
 
 	tbl = rht_dereference_rcu(local->sta_hash.tbl, &local->sta_hash);
 
+	sta = sta_info_get_by_vif(local, hdr->addr2, hdr->addr1);
+	if (sta)
+		goto found_it;
+
 	for_each_sta_info(local, tbl, hdr->addr1, sta, tmp) {
 		/* skip wrong virtual interface */
 		if (!ether_addr_equal(hdr->addr2, sta->sdata->vif.addr))
@@ -767,6 +771,7 @@ void ieee80211_tx_status(struct ieee80211_hw *hw, struct sk_buff *skb)
 
 		shift = ieee80211_vif_get_shift(&sta->sdata->vif);
 
+found_it:
 		if (info->flags & IEEE80211_TX_STATUS_EOSP)
 			clear_sta_flag(sta, WLAN_STA_SP);
 
@@ -875,6 +880,7 @@ void ieee80211_tx_status(struct ieee80211_hw *hw, struct sk_buff *skb)
 				ieee80211_lost_packet(sta, info);
 			}
 		}
+		break;
 	}
 
 	rcu_read_unlock();
