@@ -566,8 +566,11 @@ static int wiphy_verify_combinations(struct wiphy *wiphy)
 			 * Don't advertise an unsupported type
 			 * in a combination.
 			 */
-			if (WARN_ON((wiphy->interface_modes & types) != types))
+			if (WARN_ON((wiphy->interface_modes & types) != types)) {
+				pr_err("Advertised unsupported type: wiphy modes: 0x%x  types: 0x%x\n",
+				       wiphy->interface_modes, types);
 				return -EINVAL;
+			}
 		}
 
 		/* You can't even choose that many! */
