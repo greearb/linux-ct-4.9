@@ -1283,6 +1283,10 @@ out:
 		goto err;
 	}
 
+	/* Save firmware name so we can display it later. */
+	strlcpy(ar->normal_mode_fw.fw_file.fw_name, filename,
+		sizeof(ar->normal_mode_fw.fw_file.fw_name));
+
 	return 0;
 
 err:
@@ -1579,6 +1583,9 @@ fw_ie_bss_info_ct:
 				  fw_file->fw_features);
 	}
 
+	/* Save firmware name so we can display it later. */
+	strlcpy(fw_file->fw_name, name, sizeof(fw_file->fw_name));
+
 	return 0;
 
 err:
@@ -1642,7 +1649,9 @@ static int ath10k_core_fetch_firmware_files(struct ath10k *ar)
 		return ret;
 
 success:
-	ath10k_dbg(ar, ATH10K_DBG_BOOT, "using fw api %d\n", ar->fw_api);
+	ath10k_dbg(ar, ATH10K_DBG_BOOT, "using fw api %d: %s/%s\n",
+		   ar->fw_api, ar->hw_params.fw.dir,
+		   ar->normal_mode_fw.fw_file.fw_name);
 
 	return 0;
 }
