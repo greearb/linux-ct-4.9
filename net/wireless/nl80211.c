@@ -8724,7 +8724,7 @@ static int nl80211_set_tx_bitrate_mask(struct sk_buff *skb,
 		}
 		sband = rdev->wiphy.bands[band];
 		if (!sband) {
-			pr_err("sband[%d] is null\n", band);
+			/* pr_err("sband[%d] is null\n", band); */
 			return -EINVAL;
 		}
 		err = nla_parse(tb, NL80211_TXRATE_MAX, nla_data(tx_rates),
