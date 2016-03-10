@@ -404,6 +404,7 @@ static const struct nla_policy nl80211_policy[NUM_NL80211_ATTR] = {
 	[NL80211_ATTR_PBSS] = { .type = NLA_FLAG },
 	[NL80211_ATTR_BSS_SELECT] = { .type = NLA_NESTED },
 	[NL80211_ATTR_STA_SUPPORT_P2P_PS] = { .type = NLA_U8 },
+	[NL80211_ATTR_TX_ADVERT_RATEMASK] = { .type = NLA_FLAG },
 };
 
 /* policy for the key attributes */
@@ -8680,6 +8681,7 @@ static int nl80211_set_tx_bitrate_mask(struct sk_buff *skb,
 	struct nlattr *tx_rates;
 	struct ieee80211_supported_band *sband;
 	u16 vht_tx_mcs_map;
+	bool is_advert_mask = false;
 
 	if (!rdev->ops->set_bitrate_mask)
 		return -EOPNOTSUPP;
@@ -8708,6 +8710,7 @@ static int nl80211_set_tx_bitrate_mask(struct sk_buff *skb,
 	if (!info->attrs[NL80211_ATTR_TX_RATES])
 		goto out;
 
+	is_advert_mask = nla_get_flag(info->attrs[NL80211_ATTR_TX_ADVERT_RATEMASK]);
 	/*
 	 * The nested attribute uses enum nl80211_band as the index. This maps
 	 * directly to the enum nl80211_band values used in cfg80211.
@@ -8801,7 +8804,7 @@ static int nl80211_set_tx_bitrate_mask(struct sk_buff *skb,
 	}
 
 out:
-	return rdev_set_bitrate_mask(rdev, dev, NULL, &mask);
+	return rdev_set_bitrate_mask(rdev, dev, NULL, &mask, is_advert_mask);
 }
 
 static int nl80211_register_mgmt(struct sk_buff *skb, struct genl_info *info)
