@@ -8682,6 +8682,7 @@ static int nl80211_set_tx_bitrate_mask(struct sk_buff *skb,
 	struct ieee80211_supported_band *sband;
 	u16 vht_tx_mcs_map;
 	bool is_advert_mask = false;
+	int rv;
 
 	if (!rdev->ops->set_bitrate_mask)
 		return -EOPNOTSUPP;
@@ -8727,7 +8728,7 @@ static int nl80211_set_tx_bitrate_mask(struct sk_buff *skb,
 		}
 		sband = rdev->wiphy.bands[band];
 		if (!sband) {
-			/* pr_err("sband[%d] is null\n", band); */
+			pr_err("sband[%d] is null\n", band);
 			return -EINVAL;
 		}
 		err = nla_parse(tb, NL80211_TXRATE_MAX, nla_data(tx_rates),
@@ -8804,7 +8805,10 @@ static int nl80211_set_tx_bitrate_mask(struct sk_buff *skb,
 	}
 
 out:
-	return rdev_set_bitrate_mask(rdev, dev, NULL, &mask, is_advert_mask);
+	rv = rdev_set_bitrate_mask(rdev, dev, NULL, &mask, is_advert_mask);
+	if (rv != 0)
+		pr_err("rdev-set-bitrate-mask failed: %d\n", rv);
+	return rv;
 }
 
 static int nl80211_register_mgmt(struct sk_buff *skb, struct genl_info *info)
