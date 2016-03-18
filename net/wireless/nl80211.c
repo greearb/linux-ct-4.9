@@ -8806,8 +8806,10 @@ static int nl80211_set_tx_bitrate_mask(struct sk_buff *skb,
 
 out:
 	rv = rdev_set_bitrate_mask(rdev, dev, NULL, &mask, is_advert_mask);
-	if (rv != 0)
-		pr_err("rdev-set-bitrate-mask failed: %d\n", rv);
+	if (rv != 0) {
+		if (rv != -ENETDOWN)
+			pr_err("rdev-set-bitrate-mask failed: %d\n", rv);
+	}
 	return rv;
 }
 
