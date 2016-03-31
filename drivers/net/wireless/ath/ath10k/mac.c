@@ -811,6 +811,7 @@ static void ath10k_peer_cleanup(struct ath10k *ar, u32 vdev_id)
 {
 	struct ath10k_peer *peer, *tmp;
 	int peer_id;
+	int i;
 
 	lockdep_assert_held(&ar->conf_mutex);
 
@@ -827,6 +828,17 @@ static void ath10k_peer_cleanup(struct ath10k *ar, u32 vdev_id)
 			ath10k_warn(ar, "removing peer mapping %pM peer-id: %d\n",
 				    peer->addr, peer_id);
 			ar->peer_map[peer_id] = NULL;
+		}
+
+		/* Double check that peer is properly un-referenced from
+		 * the peer_map
+		 */
+		for (i = 0; i < ARRAY_SIZE(ar->peer_map); i++) {
+			if (ar->peer_map[i] == peer) {
+				ath10k_warn(ar, "removing stale peer_map entry for %pM (ptr %p idx %d)\n",
+					    peer->addr, peer, i);
+				ar->peer_map[i] = NULL;
+			}
 		}
 
 		list_del(&peer->list);
@@ -857,6 +869,7 @@ void ath10k_dump_peer_info(struct ath10k *ar)
 static void ath10k_peer_cleanup_all(struct ath10k *ar)
 {
 	struct ath10k_peer *peer, *tmp;
+	int i;
 
 	lockdep_assert_held(&ar->conf_mutex);
 
@@ -867,6 +880,10 @@ static void ath10k_peer_cleanup_all(struct ath10k *ar)
 		list_del(&peer->list);
 		kfree(peer);
 	}
+
+	for (i = 0; i < ARRAY_SIZE(ar->peer_map); i++)
+		ar->peer_map[i] = NULL;
+
 	spin_unlock_bh(&ar->data_lock);
 
 	ar->num_peers = 0;
