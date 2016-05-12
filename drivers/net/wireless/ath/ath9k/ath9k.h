@@ -955,7 +955,7 @@ struct ath_softc {
 	struct device *dev;
 
 	struct survey_info *cur_survey;
-	struct survey_info survey[ATH9K_NUM_CHANNELS];
+	struct survey_info survey[ATH9K_MAX_NUM_CHANNELS];
 
 	struct tasklet_struct intr_tq;
 	struct tasklet_struct bcon_tasklet;
