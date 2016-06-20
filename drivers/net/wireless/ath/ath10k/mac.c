@@ -8419,7 +8419,7 @@ int ath10k_copy_comb(struct ath10k* ar,
 		ar->if_comb[i].limits = kzalloc(ln, GFP_KERNEL);
 		if (!ar->if_comb[i].limits)
 			return -ENOMEM;
-		memcpy(ar->if_comb[i].limits, comb[i].limits, ln);
+		memcpy((void*)(ar->if_comb[i].limits), comb[i].limits, ln);
 	}
 
 	ar->hw->wiphy->iface_combinations = ar->if_comb;
