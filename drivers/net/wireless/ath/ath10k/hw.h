@@ -221,7 +221,6 @@ enum ath10k_hw_rev {
 };
 
 struct ath10k_hw_regs {
-	u32 rtc_state_cold_reset_mask;
 	u32 rtc_soc_base_address;
 	u32 rtc_wmac_base_address;
 	u32 soc_core_base_address;
@@ -526,7 +525,6 @@ enum ath10k_hw_4addr_pad {
 /* as of IP3.7.1 */
 #define RTC_STATE_V_ON				ar->hw_values->rtc_state_val_on
 
-#define RTC_STATE_COLD_RESET_MASK		ar->regs->rtc_state_cold_reset_mask
 #define RTC_STATE_V_LSB				0
 #define RTC_STATE_V_MASK			0x00000007
 #define RTC_STATE_ADDRESS			0x0000
