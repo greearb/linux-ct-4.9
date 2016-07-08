@@ -3286,6 +3286,8 @@ static int ath10k_pci_probe(struct pci_dev *pdev,
 	u32 chip_id;
 	bool pci_ps;
 
+	printk(KERN_INFO "ath10k driver, optimized for CT firmware, probing pci.\n");
+
 	switch (pci_dev->device) {
 	case QCA988X_2_0_DEVICE_ID:
 		hw_rev = ATH10K_HW_QCA988X;
