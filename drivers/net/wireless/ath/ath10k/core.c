@@ -1607,9 +1607,6 @@ static int ath10k_core_fetch_firmware_files(struct ath10k *ar)
 	/* First, see if we have a special config file for this firmware. */
 	ath10k_fetch_fwcfg_file(ar);
 
-	/* calibration file is optional, don't check for any errors */
-	ath10k_fetch_cal_file(ar);
-
 	/* Check for user-specified firmware name. */
 	if (ar->fwcfg.fwname[0] && (ar->fwcfg.flags & ATH10K_FWCFG_FWVER)) {
 		ar->fw_api = ar->fwcfg.fwver;
@@ -2544,6 +2541,7 @@ static int ath10k_core_probe_fw(struct ath10k *ar)
 {
 	struct bmi_target_info target_info;
 	int ret = 0;
+	int calret;
 
 	ret = ath10k_hif_power_up(ar);
 	if (ret) {
@@ -2567,6 +2565,9 @@ static int ath10k_core_probe_fw(struct ath10k *ar)
 		goto err_power_down;
 	}
 
+	/* calibration file is optional, don't check for any errors */
+	calret = ath10k_fetch_cal_file(ar);
+
 	ret = ath10k_core_fetch_firmware_files(ar);
 	if (ret) {
 		ath10k_err(ar, "could not fetch firmware files (%d)\n", ret);
@@ -2589,11 +2590,14 @@ static int ath10k_core_probe_fw(struct ath10k *ar)
 			   "could not load pre cal data: %d\n", ret);
 	}
 
-	ret = ath10k_core_get_board_id_from_otp(ar);
-	if (ret && ret != -EOPNOTSUPP) {
-		ath10k_err(ar, "failed to get board id from otp: %d\n",
-			   ret);
-		goto err_free_firmware_files;
+	/* otp and board file not needed if calibration data is present */
+	if (calret) {
+		ret = ath10k_core_get_board_id_from_otp(ar);
+		if (ret && ret != -EOPNOTSUPP) {
+			ath10k_err(ar, "failed to get board id from otp: %d\n",
+				ret);
+			goto err_free_firmware_files;
+		}
 	}
 
 	ret = ath10k_core_fetch_board_file(ar);
