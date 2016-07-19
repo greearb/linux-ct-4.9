@@ -6814,4 +6814,6 @@ int ath10k_wmi_request_nop(struct ath10k *ar);
 #warning Please enable ATH10K-DEBUGFS kernel option for optimal support for CT firmware.
 #endif
 
+int ath10k_wmi_barrier(struct ath10k *ar);
+
 #endif /* _WMI_H_ */
