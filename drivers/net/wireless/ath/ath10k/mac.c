@@ -4307,8 +4307,8 @@ void ath10k_mac_tx_push_pending(struct ath10k *ar)
 	int max;
 	int loop_max = 2000;
 
-	spin_lock_bh(&ar->txqs_lock);
 	rcu_read_lock();
+	spin_lock_bh(&ar->txqs_lock);
 
 	last = list_last_entry(&ar->txqs, struct ath10k_txq, list);
 	while (!list_empty(&ar->txqs)) {
@@ -4342,8 +4342,8 @@ void ath10k_mac_tx_push_pending(struct ath10k *ar)
 			break;
 	}
 
-	rcu_read_unlock();
 	spin_unlock_bh(&ar->txqs_lock);
+	rcu_read_unlock();
 }
 
 /************/
