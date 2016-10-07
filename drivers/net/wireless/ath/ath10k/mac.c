@@ -613,10 +613,14 @@ chan_to_phymode(const struct cfg80211_chan_def *chandef)
 		case NL80211_CHAN_WIDTH_80:
 			phymode = MODE_11AC_VHT80;
 			break;
+		case NL80211_CHAN_WIDTH_160:
+			phymode = MODE_11AC_VHT160;
+			break;
+		case NL80211_CHAN_WIDTH_80P80:
+			phymode = MODE_11AC_VHT80_80;
+			break;
 		case NL80211_CHAN_WIDTH_5:
 		case NL80211_CHAN_WIDTH_10:
-		case NL80211_CHAN_WIDTH_80P80:
-		case NL80211_CHAN_WIDTH_160:
 			phymode = MODE_UNKNOWN;
 			break;
 		}
@@ -1045,6 +1049,7 @@ static int ath10k_monitor_vdev_start(struct ath10k *ar, int vdev_id)
 	arg.vdev_id = vdev_id;
 	arg.channel.freq = channel->center_freq;
 	arg.channel.band_center_freq1 = chandef->center_freq1;
+	arg.channel.band_center_freq2 = chandef->center_freq2;
 
 	/* TODO setup this dynamically, what in case we
 	   don't have any vifs? */
@@ -1456,6 +1461,7 @@ static int ath10k_vdev_start_restart(struct ath10k_vif *arvif,
 
 	arg.channel.freq = chandef->chan->center_freq;
 	arg.channel.band_center_freq1 = chandef->center_freq1;
+	arg.channel.band_center_freq2 = chandef->center_freq2;
 	arg.channel.mode = chan_to_phymode(chandef);
 
 	arg.channel.min_power = 0;
@@ -2700,6 +2706,9 @@ static void ath10k_peer_assoc_h_vht(struct ath10k *ar,
 	if (sta->bandwidth == IEEE80211_STA_RX_BW_80)
 		arg->peer_flags |= ar->wmi.peer_flags->bw80;
 
+	if (sta->bandwidth == IEEE80211_STA_RX_BW_160)
+		arg->peer_flags |= ar->wmi.peer_flags->bw160;
+
 	arg->peer_vht_rates.rx_max_rate =
 		__le16_to_cpu(vht_cap->vht_mcs.rx_highest);
 	arg->peer_vht_rates.rx_mcs_set =
@@ -2893,7 +2902,17 @@ static void ath10k_peer_assoc_h_phymode(struct ath10k *ar,
 		    !ath10k_peer_assoc_h_vht_masked(vht_mcs_mask)) {
 			if (sta->bandwidth == IEEE80211_STA_RX_BW_80)
 				phymode = MODE_11AC_VHT80;
-			else if (sta->bandwidth == IEEE80211_STA_RX_BW_40)
+			else if (sta->bandwidth == IEEE80211_STA_RX_BW_160) {
+				phymode = MODE_11AC_VHT160;
+				switch (sta->vht_cap.cap & IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_MASK) {
+				case IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_160MHZ:
+					phymode = MODE_11AC_VHT160;
+				break;
+				case IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_160_80PLUS80MHZ:
+					phymode = MODE_11AC_VHT80_80;
+				break;
+				}
+			} else if (sta->bandwidth == IEEE80211_STA_RX_BW_40)
 				phymode = MODE_11AC_VHT40;
 			else if (sta->bandwidth == IEEE80211_STA_RX_BW_20)
 				phymode = MODE_11AC_VHT20;
@@ -4803,6 +4822,10 @@ static struct ieee80211_sta_vht_cap ath10k_create_vht_cap(struct ath10k *ar)
 		val &= IEEE80211_VHT_CAP_SOUNDING_DIMENSIONS_MASK;
 
 		vht_cap.cap |= val;
+	}
+
+	if ((ar->vht_cap_info & IEEE80211_VHT_CAP_SHORT_GI_160) && !(ar->vht_cap_info & IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_160_80PLUS80MHZ)) {
+		vht_cap.cap |= IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_160MHZ;
 	}
 
 	mcs_map = 0;
@@ -7582,6 +7605,9 @@ static void ath10k_sta_rc_update(struct ieee80211_hw *hw,
 			bw = WMI_PEER_CHWIDTH_80MHZ;
 			break;
 		case IEEE80211_STA_RX_BW_160:
+			bw = WMI_PEER_CHWIDTH_160MHZ;
+			break;
+		default:
 			ath10k_warn(ar, "Invalid bandwidth %d in rc update for %pM\n",
 				    sta->bandwidth, sta->addr);
 			bw = WMI_PEER_CHWIDTH_20MHZ;
