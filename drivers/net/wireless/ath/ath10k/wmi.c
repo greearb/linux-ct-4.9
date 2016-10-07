@@ -1574,6 +1574,7 @@ static const struct wmi_peer_flags_map wmi_peer_flags_map = {
 	.bw80 = WMI_PEER_80MHZ,
 	.vht_2g = WMI_PEER_VHT_2G,
 	.pmf = WMI_PEER_PMF,
+	.bw160 = WMI_PEER_160MHZ,
 };
 
 static const struct wmi_peer_flags_map wmi_10x_peer_flags_map = {
@@ -1591,6 +1592,7 @@ static const struct wmi_peer_flags_map wmi_10x_peer_flags_map = {
 	.spatial_mux = WMI_10X_PEER_SPATIAL_MUX,
 	.vht = WMI_10X_PEER_VHT,
 	.bw80 = WMI_10X_PEER_80MHZ,
+	.bw160 = WMI_10X_PEER_160MHZ,
 };
 
 static const struct wmi_peer_flags_map wmi_10_2_peer_flags_map = {
@@ -1610,6 +1612,7 @@ static const struct wmi_peer_flags_map wmi_10_2_peer_flags_map = {
 	.bw80 = WMI_10_2_PEER_80MHZ,
 	.vht_2g = WMI_10_2_PEER_VHT_2G,
 	.pmf = WMI_10_2_PEER_PMF,
+	.bw160 = WMI_10_2_PEER_160MHZ,
 };
 
 static bool ath10k_ok_skip_ch_reservation(struct ath10k *ar, u32 vdev_id)
@@ -1668,7 +1671,10 @@ void ath10k_wmi_put_wmi_channel(struct ath10k *ar,
 
 	ch->mhz = __cpu_to_le32(arg->freq);
 	ch->band_center_freq1 = __cpu_to_le32(arg->band_center_freq1);
-	ch->band_center_freq2 = 0;
+	if (arg->mode == MODE_11AC_VHT80_80)
+		ch->band_center_freq2 = __cpu_to_le32(arg->band_center_freq2);
+	else
+		ch->band_center_freq2 = 0;
 	ch->min_power = arg->min_power;
 	ch->max_power = arg->max_power;
 	ch->reg_power = arg->max_reg_power;
