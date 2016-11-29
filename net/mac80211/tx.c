@@ -1293,6 +1293,16 @@ static void ieee80211_drv_tx(struct ieee80211_local *local,
 		goto tx_normal;
 
 	ac = txq->ac;
+
+	if (atomic_read(&sdata->txqs_len[ac]) >=
+	    (local->hw.txq_ac_max_pending * 2)) {
+		/* Must be that something is not paying attention to
+		 * max-pending, like pktgen, so just drop this frame.
+		 */
+		ieee80211_free_txskb(&local->hw, skb);
+		return;
+	}
+
 	txqi = to_txq_info(txq);
 	atomic_inc(&sdata->txqs_len[ac]);
 	if (atomic_read(&sdata->txqs_len[ac]) >= local->hw.txq_ac_max_pending)
