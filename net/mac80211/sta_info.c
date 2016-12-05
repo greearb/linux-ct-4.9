@@ -2049,6 +2049,7 @@ static void sta_stats_decode_rate(struct ieee80211_local *local, u16 rate,
 		u16 brate;
 		unsigned int shift;
 
+		rinfo->flags = 0;
 		sband = local->hw.wiphy->bands[(rate >> 4) & 0xf];
 		brate = sband->bitrates[rate & 0xf].bitrate;
 		if (rinfo->bw == RATE_INFO_BW_5)
@@ -2064,14 +2065,15 @@ static void sta_stats_decode_rate(struct ieee80211_local *local, u16 rate,
 		rinfo->flags |= RATE_INFO_FLAGS_SHORT_GI;
 }
 
-static void sta_set_rate_info_rx(struct sta_info *sta, struct rate_info *rinfo)
+static int sta_set_rate_info_rx(struct sta_info *sta, struct rate_info *rinfo)
 {
 	u16 rate = ACCESS_ONCE(sta_get_last_rx_stats(sta)->last_rate);
-
-	if (rate == STA_STATS_RATE_INVALID)
-		rinfo->flags = 0;
-	else
+	if (rate == STA_STATS_RATE_INVALID) {
+		return -EINVAL;
+	} else {
 		sta_stats_decode_rate(sta->local, rate, rinfo);
+		return 0;
+	}
 }
 
 static void sta_set_tidstats(struct sta_info *sta,
@@ -2276,8 +2278,8 @@ void sta_set_sinfo(struct sta_info *sta, struct station_info *sinfo)
 	}
 
 	if (!(sinfo->filled & BIT(NL80211_STA_INFO_RX_BITRATE))) {
-		sta_set_rate_info_rx(sta, &sinfo->rxrate);
-		sinfo->filled |= BIT(NL80211_STA_INFO_RX_BITRATE);
+		if (sta_set_rate_info_rx(sta, &sinfo->rxrate) == 0)
+			sinfo->filled |= BIT(NL80211_STA_INFO_RX_BITRATE);
 	}
 
 	sinfo->filled |= BIT(NL80211_STA_INFO_TID_STATS);
