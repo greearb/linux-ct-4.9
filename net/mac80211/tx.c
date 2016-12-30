@@ -3081,6 +3081,7 @@ static bool ieee80211_xmit_fast(struct ieee80211_sub_if_data *sdata,
 
 		if (!skb)
 			return true;
+		info = IEEE80211_SKB_CB(skb);
 	}
 
 	ieee80211_tx_stats(dev, skb->len + extra_head);
