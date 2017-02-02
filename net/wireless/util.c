@@ -1678,7 +1678,7 @@ int cfg80211_iter_combinations(struct wiphy *wiphy,
 		}
 
 		if (radar_detect != (c->radar_detect_widths & radar_detect)) {
-			pr_info("%i: iter-comb radar-detect: %d  %d\n",
+			pr_info("%i: iter-comb radar-detect-needed: 0x%x  combo->radar_detect_widths: 0x%x\n",
 				i, radar_detect, c->radar_detect_widths);
 			goto cont;
 		}
