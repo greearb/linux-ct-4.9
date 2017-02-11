@@ -6173,6 +6173,7 @@ struct wmi_10_2_peer_assoc_complete_cmd_ct {
 	struct wmi_ct_assoc_overrides overrides;
 } __packed;
 
+#define PEER_BW_RXNSS_OVERRIDE_OFFSET  31
 struct wmi_10_4_peer_assoc_complete_cmd {
 	struct wmi_10_2_peer_assoc_complete_cmd cmd;
 	__le32 peer_bw_rxnss_override;
@@ -6201,6 +6202,7 @@ struct wmi_peer_assoc_complete_arg {
 	u32 peer_vht_caps;
 	enum wmi_phy_mode peer_phymode;
 	struct wmi_vht_rate_set_arg peer_vht_rates;
+	u32 peer_bw_rxnss_override;
 
 	/* CT firmware only (beta-15 and higher ) */
 	bool has_rate_overrides;

@@ -2760,6 +2760,18 @@ static void ath10k_peer_assoc_h_vht(struct ath10k *ar,
 		   sta->addr, arg->peer_max_mpdu, arg->peer_flags,
 		   arg->peer_vht_rates.rx_max_rate, arg->peer_vht_rates.rx_mcs_set,
 		   arg->peer_vht_rates.tx_max_rate, arg->peer_vht_rates.tx_mcs_set);
+
+	if ((arg->peer_vht_rates.rx_max_rate) &&
+	    (sta->vht_cap.cap & IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_MASK)) {
+		if (arg->peer_vht_rates.rx_max_rate == 1560) {
+			/* Must be 2x2 at 160Mhz is all it can do. */
+			arg->peer_bw_rxnss_override = 2;
+		}
+		else if (arg->peer_vht_rates.rx_max_rate == 780) {
+			/* Can only do 1x2 at 160Mhz (Long Guard Interval) */
+			arg->peer_bw_rxnss_override = 1;
+		}
+	}
 }
 
 static void ath10k_peer_assoc_h_qos(struct ath10k *ar,
@@ -4899,7 +4911,8 @@ static struct ieee80211_sta_vht_cap ath10k_create_vht_cap(struct ath10k *ar)
 		vht_cap.cap |= val;
 	}
 
-	if ((ar->vht_cap_info & IEEE80211_VHT_CAP_SHORT_GI_160) && !(ar->vht_cap_info & IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_160_80PLUS80MHZ)) {
+	if ((ar->vht_cap_info & IEEE80211_VHT_CAP_SHORT_GI_160) &&
+	    ((ar->vht_cap_info & IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_MASK) == 0)) {
 		vht_cap.cap |= IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_160MHZ;
 	}
 
@@ -4916,6 +4929,21 @@ static struct ieee80211_sta_vht_cap ath10k_create_vht_cap(struct ath10k *ar)
 
 	vht_cap.vht_mcs.rx_mcs_map = cpu_to_le16(mcs_map);
 	vht_cap.vht_mcs.tx_mcs_map = cpu_to_le16(mcs_map);
+
+	/* If we are supporting 160Mhz or 80+80, then the NIC may be able to do a restricted NSS
+	 * for 160 or 80+80 vs what it can do for 80Mhz.  Give user-space a clue if that is the
+	 * case.
+	 */
+	if (vht_cap.cap & IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_MASK) {
+		/* Something more than 80Mhz at least */
+		if (ar->dev_id == QCA9984_1_0_DEVICE_ID) {
+			/* Can do only 2x2 VHT160 or 80+80.
+			 * 1560Mbps is 4x4 80Mhz or 2x2 160Mhz, long-guard-interval
+			 */
+			vht_cap.vht_mcs.rx_highest = 1560;
+			vht_cap.vht_mcs.tx_highest = 1560;
+		}
+	}
 
 	return vht_cap;
 }
