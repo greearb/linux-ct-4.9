@@ -2763,7 +2763,8 @@ static void ath10k_peer_assoc_h_vht(struct ath10k *ar,
 
 	if ((arg->peer_vht_rates.rx_max_rate) &&
 	    (sta->vht_cap.cap & IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_MASK)) {
-		if (arg->peer_vht_rates.rx_max_rate == 1560) {
+		if ((arg->peer_num_spatial_streams > 1) &&
+		    (arg->peer_vht_rates.rx_max_rate == 1560)) {
 			/* Must be 2x2 at 160Mhz is all it can do. */
 			arg->peer_bw_rxnss_override = 2;
 		}
