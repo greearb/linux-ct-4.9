@@ -989,9 +989,11 @@ void ath10k_mac_vif_beacon_free(struct ath10k_vif *arvif)
 	if (!arvif->beacon)
 		return;
 
-	if (!arvif->beacon_buf)
+	if (!arvif->beacon_buf) {
+		ath10k_dbg_dma_map(ar, ATH10K_SKB_CB(arvif->beacon)->paddr, arvif->beacon->len, "unmap: vif-beacon");
 		dma_unmap_single(ar->dev, ATH10K_SKB_CB(arvif->beacon)->paddr,
 				 arvif->beacon->len, DMA_TO_DEVICE);
+	}
 
 	if (WARN_ON(arvif->beacon_state != ATH10K_BEACON_SCHEDULED &&
 		    arvif->beacon_state != ATH10K_BEACON_SENT))
