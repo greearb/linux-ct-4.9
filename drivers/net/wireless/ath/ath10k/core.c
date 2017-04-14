@@ -381,6 +381,66 @@ void ath10k_core_get_fw_features_str(struct ath10k *ar,
 	}
 }
 
+void ath10k_dbg_dma_map(struct ath10k* ar, unsigned long long addr, unsigned long len, const char* dbg)
+{
+	unsigned int i = ar->next_dma_dbg_idx++;
+
+	if (ar->next_dma_dbg_idx >= MAX_DMA_DBG_ENTRIES)
+		ar->next_dma_dbg_idx = 0;
+
+	ar->dma_dbg[i].addr = addr;
+	ar->dma_dbg[i].len = len;
+	ar->dma_dbg[i].type = dbg;
+	ar->dma_dbg[i].at = jiffies;
+}
+EXPORT_SYMBOL(ath10k_dbg_dma_map);
+
+struct ath10k* ar_array[MAX_AR];
+
+/* DMAR debugging hack, see dmar.c */
+extern void (*dmar_fault_dbg_hook)(int type, u8 fault_reason, u16 source_id, unsigned long long addr,
+				   const char* reason, int fault_type);
+
+static void ath10k_dmar_dbg_hook(int type, u8 fault_reason, u16 source_id, unsigned long long addr,
+				 const char* reason, int fault_type)
+{
+	unsigned int pci_src = source_id >> 8;
+	//unsigned int pci_slot = PCI_SLOT(source_id & 0xFF);
+	//unsigned int pci_func = source_id & 0xFF;
+	int i, q;
+
+	/* This sucks, must be a better way. */
+	char fault_dev[40];
+	sprintf(fault_dev, "0000:%02x:00.0", pci_src);
+
+	pr_err("ath10k, dmar-dbg-hook, fault-dev: %s, addr: 0x%llx searching for matching device, jiffies: %lu\n",
+	       fault_dev, addr, jiffies);
+
+	for (i = 0; i<MAX_AR; i++) {
+		struct ath10k* ar = ar_array[i];
+		const char* ar_dev_name;
+
+		if (!ar)
+			continue;
+
+		ar_dev_name = dev_name(ar->dev);
+		if (strcmp(fault_dev, ar_dev_name) != 0)
+			continue;
+
+		/* found it */
+		ath10k_err(ar, "DMAR error reported, addr: 0x%llx  reason: %s\n",
+			   addr, reason);
+
+		for (q = 0; q<MAX_DMA_DBG_ENTRIES; q++) {
+			if ((ar->dma_dbg[q].addr > (addr - 4096)) &&
+			    (ar->dma_dbg[q].addr < (addr + ar->dma_dbg[q].len + 4096))) {
+				ath10k_err(ar, "[%i] addr: 0x%llx len: %lu at: %llu type: %s\n",
+					   q, ar->dma_dbg[q].addr, ar->dma_dbg[q].len, ar->dma_dbg[q].at, ar->dma_dbg[q].type);
+			}
+		}
+	}
+}
+
 static void ath10k_send_suspend_complete(struct ath10k *ar)
 {
 	ath10k_dbg(ar, ATH10K_DBG_BOOT, "boot suspend complete\n");
@@ -2815,6 +2875,8 @@ struct ath10k *ath10k_core_create(size_t priv_size, struct device *dev,
 	if (!ar)
 		return NULL;
 
+	dmar_fault_dbg_hook = ath10k_dmar_dbg_hook;
+
 	ar->eeprom_overrides.max_txpower = 0xFFFF;
 	ar->sta_xretry_kickout_thresh = DEFAULT_ATH10K_KICKOUT_THRESHOLD;
 
@@ -2903,6 +2965,16 @@ struct ath10k *ath10k_core_create(size_t priv_size, struct device *dev,
 	if (ret)
 		goto err_free_aux_wq;
 
+	{
+		int i;
+		for (i = 0; i<MAX_AR; i++) {
+			if (!ar_array[i]) {
+				ar_array[i] = ar;
+				break;
+			}
+		}
+	}
+
 	return ar;
 
 err_free_aux_wq:
@@ -2919,6 +2991,18 @@ EXPORT_SYMBOL(ath10k_core_create);
 
 void ath10k_core_destroy(struct ath10k *ar)
 {
+	int i;
+	int any_left = 0;
+
+	for (i = 0; i<MAX_AR; i++) {
+		if (ar_array[i] == ar) {
+			ar_array[i] = NULL;
+		}
+		else if (ar_array[i]) {
+			any_left = 1;
+		}
+	}
+
 	flush_workqueue(ar->workqueue);
 	destroy_workqueue(ar->workqueue);
 
@@ -2928,6 +3012,10 @@ void ath10k_core_destroy(struct ath10k *ar)
 	ath10k_debug_destroy(ar);
 	ath10k_wmi_free_host_mem(ar);
 	ath10k_mac_destroy(ar);
+
+	if (!any_left) {
+		dmar_fault_dbg_hook = NULL;
+	}
 }
 EXPORT_SYMBOL(ath10k_core_destroy);
 

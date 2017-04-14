@@ -3686,6 +3686,7 @@ void ath10k_wmi_event_host_swba(struct ath10k *ar, struct sk_buff *skb)
 				dev_kfree_skb_any(bcn);
 				goto skip;
 			}
+			ath10k_dbg_dma_map(ar, paddr, bcn->len, "BEACON");
 
 			ATH10K_SKB_CB(bcn)->paddr = paddr;
 		} else {
@@ -4609,6 +4610,7 @@ static int ath10k_wmi_alloc_chunk(struct ath10k *ar, u32 req_id,
 		kfree(vaddr);
 		return -ENOMEM;
 	}
+	ath10k_dbg_dma_map(ar, paddr, pool_size, "WMI-ALLOC-CHUNK");
 
 	ar->wmi.mem_chunks[idx].vaddr = vaddr;
 	ar->wmi.mem_chunks[idx].paddr = paddr;
@@ -8616,6 +8618,7 @@ void ath10k_wmi_free_host_mem(struct ath10k *ar)
 
 	/* free the host memory chunks requested by firmware */
 	for (i = 0; i < ar->wmi.num_mem_chunks; i++) {
+		ath10k_dbg_dma_map(ar, ar->wmi.mem_chunks[i].paddr, ar->wmi.mem_chunks[i].len, "unmap: WMI-FREE-HOST-MEM");
 		dma_unmap_single(ar->dev,
 				 ar->wmi.mem_chunks[i].paddr,
 				 ar->wmi.mem_chunks[i].len,

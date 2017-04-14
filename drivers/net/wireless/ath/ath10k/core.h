@@ -832,12 +832,25 @@ struct ath10k_fw_components {
 	struct ath10k_fw_file fw_file;
 };
 
+#define MAX_DMA_DBG_ENTRIES 5000
+struct dma_dbg_entry {
+	unsigned long long addr;
+	unsigned long long at; /* jiffies */
+	unsigned long len;
+	const char* type;
+};
+
+void ath10k_dbg_dma_map(struct ath10k* ar, unsigned long long addr, unsigned long len, const char* dbg);
+
 struct ath10k {
 	struct ath_common ath_common;
 	struct ieee80211_hw *hw;
 	struct ieee80211_ops *ops;
 	struct device *dev;
 	u8 mac_addr[ETH_ALEN];
+
+	unsigned int next_dma_dbg_idx;
+	struct dma_dbg_entry dma_dbg[MAX_DMA_DBG_ENTRIES];
 
 	struct ieee80211_iface_combination if_comb[8];
 
@@ -1137,6 +1150,9 @@ static inline bool ath10k_peer_stats_enabled(struct ath10k *ar)
 
 	return false;
 }
+
+#define MAX_AR 50
+extern struct ath10k* ar_array[MAX_AR];
 
 struct ath10k *ath10k_core_create(size_t priv_size, struct device *dev,
 				  enum ath10k_bus bus,

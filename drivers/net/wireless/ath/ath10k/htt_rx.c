@@ -54,10 +54,12 @@ static void ath10k_htt_rx_ring_free(struct ath10k_htt *htt)
 	struct ath10k_skb_rxcb *rxcb;
 	struct hlist_node *n;
 	int i;
+	struct ath10k *ar = htt->ar;
 
 	if (htt->rx_ring.in_ord_rx) {
 		hash_for_each_safe(htt->rx_ring.skb_table, i, n, rxcb, hlist) {
 			skb = ATH10K_RXCB_SKB(rxcb);
+			ath10k_dbg_dma_map(ar, rxcb->paddr, skb->len + skb_tailroom(skb),  "unmap: htt-rx-ring-free");
 			dma_unmap_single(htt->ar->dev, rxcb->paddr,
 					 skb->len + skb_tailroom(skb),
 					 DMA_FROM_DEVICE);
@@ -71,6 +73,7 @@ static void ath10k_htt_rx_ring_free(struct ath10k_htt *htt)
 				continue;
 
 			rxcb = ATH10K_SKB_RXCB(skb);
+			ath10k_dbg_dma_map(ar, rxcb->paddr, skb->len + skb_tailroom(skb), "unmap: htt-rx-ring-free(not-in-ord-rx)");
 			dma_unmap_single(htt->ar->dev, rxcb->paddr,
 					 skb->len + skb_tailroom(skb),
 					 DMA_FROM_DEVICE);
@@ -91,6 +94,7 @@ static int __ath10k_htt_rx_ring_fill_n(struct ath10k_htt *htt, int num)
 	struct sk_buff *skb;
 	dma_addr_t paddr;
 	int ret = 0, idx;
+	struct ath10k *ar = htt->ar;
 
 	/* The Full Rx Reorder firmware has no way of telling the host
 	 * implicitly when it copied HTT Rx Ring buffers to MAC Rx Ring.
@@ -125,6 +129,7 @@ static int __ath10k_htt_rx_ring_fill_n(struct ath10k_htt *htt, int num)
 			ret = -ENOMEM;
 			goto fail;
 		}
+		ath10k_dbg_dma_map(ar, paddr, skb->len, "HTT-RX-RING-FILL");
 
 		rxcb = ATH10K_SKB_RXCB(skb);
 		rxcb->paddr = paddr;
@@ -269,6 +274,7 @@ static inline struct sk_buff *ath10k_htt_rx_netbuf_pop(struct ath10k_htt *htt)
 	htt->rx_ring.sw_rd_idx.msdu_payld = idx;
 	htt->rx_ring.fill_cnt--;
 
+	ath10k_dbg_dma_map(ar, ATH10K_SKB_RXCB(msdu)->paddr, msdu->len + skb_tailroom(msdu), "unmap: htt-rx-netbuf-pop");
 	dma_unmap_single(htt->ar->dev,
 			 ATH10K_SKB_RXCB(msdu)->paddr,
 			 msdu->len + skb_tailroom(msdu),
@@ -397,6 +403,7 @@ static struct sk_buff *ath10k_htt_rx_pop_paddr(struct ath10k_htt *htt,
 	hash_del(&rxcb->hlist);
 	htt->rx_ring.fill_cnt--;
 
+	ath10k_dbg_dma_map(ar, rxcb->paddr, msdu->len + skb_tailroom(msdu), "unmap: htt-rx-pop-paddr");
 	dma_unmap_single(htt->ar->dev, rxcb->paddr,
 			 msdu->len + skb_tailroom(msdu),
 			 DMA_FROM_DEVICE);
