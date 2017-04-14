@@ -1579,6 +1579,10 @@ void dmar_msi_read(int irq, struct msi_msg *msg)
 	raw_spin_unlock_irqrestore(&iommu->register_lock, flag);
 }
 
+void (*dmar_fault_dbg_hook)(int type, u8 fault_reason, u16 source_id, unsigned long long addr,
+			    const char* reason, int fault_type) = NULL;
+EXPORT_SYMBOL(dmar_fault_dbg_hook);
+
 static int dmar_fault_do_one(struct intel_iommu *iommu, int type,
 		u8 fault_reason, u16 source_id, unsigned long long addr)
 {
@@ -1597,6 +1601,10 @@ static int dmar_fault_do_one(struct intel_iommu *iommu, int type,
 		       type ? "DMA Read" : "DMA Write",
 		       source_id >> 8, PCI_SLOT(source_id & 0xFF),
 		       PCI_FUNC(source_id & 0xFF), addr, fault_reason, reason);
+
+	if (dmar_fault_dbg_hook)
+		dmar_fault_dbg_hook(type, fault_reason, source_id, addr, reason, fault_type);
+
 	return 0;
 }
 
