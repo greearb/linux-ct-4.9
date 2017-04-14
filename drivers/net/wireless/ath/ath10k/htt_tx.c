@@ -275,6 +275,7 @@ static void ath10k_htt_tx_free_txq(struct ath10k_htt *htt)
 
 	size = sizeof(*htt->tx_q_state.vaddr);
 
+	ath10k_dbg_dma_map(ar, htt->tx_q_state.paddr, size, "unmap: htt-tx-free-txq");
 	dma_unmap_single(ar->dev, htt->tx_q_state.paddr, size, DMA_TO_DEVICE);
 	kfree(htt->tx_q_state.vaddr);
 }
@@ -306,6 +307,7 @@ static int ath10k_htt_tx_alloc_txq(struct ath10k_htt *htt)
 		kfree(htt->tx_q_state.vaddr);
 		return -EIO;
 	}
+	ath10k_dbg_dma_map(ar, htt->tx_q_state.paddr, size, "HTT-TX-ALLOC-TXQ");
 
 	return 0;
 }
@@ -811,6 +813,7 @@ int ath10k_htt_mgmt_tx(struct ath10k_htt *htt, struct sk_buff *msdu)
 		res = -EIO;
 		goto err_free_txdesc;
 	}
+	ath10k_dbg_dma_map(ar, skb_cb->paddr, skb_len, "HTT-MGT_TX");
 
 	skb_put(txdesc, len);
 	cmd = (struct htt_cmd *)txdesc->data;
@@ -835,6 +838,7 @@ int ath10k_htt_mgmt_tx(struct ath10k_htt *htt, struct sk_buff *msdu)
 	return 0;
 
 err_unmap_msdu:
+	ath10k_dbg_dma_map(ar, skb_cb->paddr, msdu->len, "unmap: htt-mgt-tx-err");
 	dma_unmap_single(dev, skb_cb->paddr, msdu->len, DMA_TO_DEVICE);
 err_free_txdesc:
 	dev_kfree_skb_any(txdesc);
@@ -903,6 +907,7 @@ int ath10k_htt_tx(struct ath10k_htt *htt, enum ath10k_hw_txrx_mode txmode,
 		res = -EIO;
 		goto err_free_msdu_id;
 	}
+	ath10k_dbg_dma_map(ar, skb_cb->paddr, msdu->len, "HTT-TX-MSDU");
 
 	if (unlikely(info->flags & IEEE80211_TX_CTL_TX_OFFCHAN))
 		freq = ar->scan.roc_freq;
@@ -1043,6 +1048,7 @@ int ath10k_htt_tx(struct ath10k_htt *htt, enum ath10k_hw_txrx_mode txmode,
 	return 0;
 
 err_unmap_msdu:
+	ath10k_dbg_dma_map(ar, skb_cb->paddr, msdu->len, "unmap: htt-tx-err");
 	dma_unmap_single(dev, skb_cb->paddr, msdu->len, DMA_TO_DEVICE);
 err_free_msdu_id:
 	ath10k_htt_tx_free_msdu_id(htt, msdu_id);
