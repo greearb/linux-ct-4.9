@@ -55,7 +55,7 @@ static inline void ath10k_htc_restore_tx_skb(struct ath10k_htc *htc,
 	struct ath10k *ar = htc->ar;
 
 	ath10k_dbg_dma_map(ar, skb_cb->paddr, skb->len, "unmap: htc-restore-tx-skb");
-	dma_unmap_single(htc->ar->dev, skb_cb->paddr, skb->len, DMA_TO_DEVICE);
+	dma_unmap_single(ar->dev, skb_cb->paddr, skb->len, DMA_TO_DEVICE);
 	skb_pull(skb, sizeof(struct ath10k_htc_hdr));
 }
 

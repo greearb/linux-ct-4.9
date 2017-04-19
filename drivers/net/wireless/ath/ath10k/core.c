@@ -381,6 +381,7 @@ void ath10k_core_get_fw_features_str(struct ath10k *ar,
 	}
 }
 
+#if defined CONFIG_DMAR_TABLE && !defined STANDALONE_CT
 void ath10k_dbg_dma_map(struct ath10k* ar, unsigned long long addr, unsigned long len, const char* dbg)
 {
 	unsigned int i = ar->next_dma_dbg_idx++;
@@ -440,6 +441,9 @@ static void ath10k_dmar_dbg_hook(int type, u8 fault_reason, u16 source_id, unsig
 		}
 	}
 }
+#else
+#warning "Not compiling DMAR debug hook on this platform.";
+#endif
 
 static void ath10k_send_suspend_complete(struct ath10k *ar)
 {
@@ -2875,7 +2879,9 @@ struct ath10k *ath10k_core_create(size_t priv_size, struct device *dev,
 	if (!ar)
 		return NULL;
 
+#if defined CONFIG_DMAR_TABLE && !defined STANDALONE_CT
 	dmar_fault_dbg_hook = ath10k_dmar_dbg_hook;
+#endif
 
 	ar->eeprom_overrides.max_txpower = 0xFFFF;
 	ar->sta_xretry_kickout_thresh = DEFAULT_ATH10K_KICKOUT_THRESHOLD;
@@ -2965,6 +2971,7 @@ struct ath10k *ath10k_core_create(size_t priv_size, struct device *dev,
 	if (ret)
 		goto err_free_aux_wq;
 
+#if defined CONFIG_DMAR_TABLE && !defined STANDALONE_CT
 	{
 		int i;
 		for (i = 0; i<MAX_AR; i++) {
@@ -2974,6 +2981,7 @@ struct ath10k *ath10k_core_create(size_t priv_size, struct device *dev,
 			}
 		}
 	}
+#endif
 
 	return ar;
 
@@ -2991,6 +2999,7 @@ EXPORT_SYMBOL(ath10k_core_create);
 
 void ath10k_core_destroy(struct ath10k *ar)
 {
+#if defined CONFIG_DMAR_TABLE && !defined STANDALONE_CT
 	int i;
 	int any_left = 0;
 
@@ -3002,6 +3011,7 @@ void ath10k_core_destroy(struct ath10k *ar)
 			any_left = 1;
 		}
 	}
+#endif
 
 	flush_workqueue(ar->workqueue);
 	destroy_workqueue(ar->workqueue);
@@ -3013,9 +3023,11 @@ void ath10k_core_destroy(struct ath10k *ar)
 	ath10k_wmi_free_host_mem(ar);
 	ath10k_mac_destroy(ar);
 
+#if defined CONFIG_DMAR_TABLE && !defined STANDALONE_CT
 	if (!any_left) {
 		dmar_fault_dbg_hook = NULL;
 	}
+#endif
 }
 EXPORT_SYMBOL(ath10k_core_destroy);
 
