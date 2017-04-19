@@ -60,7 +60,7 @@ static void ath10k_htt_rx_ring_free(struct ath10k_htt *htt)
 		hash_for_each_safe(htt->rx_ring.skb_table, i, n, rxcb, hlist) {
 			skb = ATH10K_RXCB_SKB(rxcb);
 			ath10k_dbg_dma_map(ar, rxcb->paddr, skb->len + skb_tailroom(skb),  "unmap: htt-rx-ring-free");
-			dma_unmap_single(htt->ar->dev, rxcb->paddr,
+			dma_unmap_single(ar->dev, rxcb->paddr,
 					 skb->len + skb_tailroom(skb),
 					 DMA_FROM_DEVICE);
 			hash_del(&rxcb->hlist);
@@ -74,7 +74,7 @@ static void ath10k_htt_rx_ring_free(struct ath10k_htt *htt)
 
 			rxcb = ATH10K_SKB_RXCB(skb);
 			ath10k_dbg_dma_map(ar, rxcb->paddr, skb->len + skb_tailroom(skb), "unmap: htt-rx-ring-free(not-in-ord-rx)");
-			dma_unmap_single(htt->ar->dev, rxcb->paddr,
+			dma_unmap_single(ar->dev, rxcb->paddr,
 					 skb->len + skb_tailroom(skb),
 					 DMA_FROM_DEVICE);
 			dev_kfree_skb_any(skb);
@@ -120,11 +120,11 @@ static int __ath10k_htt_rx_ring_fill_n(struct ath10k_htt *htt, int num)
 		rx_desc = (struct htt_rx_desc *)skb->data;
 		rx_desc->attention.flags = __cpu_to_le32(0);
 
-		paddr = dma_map_single(htt->ar->dev, skb->data,
+		paddr = dma_map_single(ar->dev, skb->data,
 				       skb->len + skb_tailroom(skb),
 				       DMA_FROM_DEVICE);
 
-		if (unlikely(dma_mapping_error(htt->ar->dev, paddr))) {
+		if (unlikely(dma_mapping_error(ar->dev, paddr))) {
 			dev_kfree_skb_any(skb);
 			ret = -ENOMEM;
 			goto fail;
