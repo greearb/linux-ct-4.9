@@ -832,6 +832,7 @@ struct ath10k_fw_components {
 	struct ath10k_fw_file fw_file;
 };
 
+#if defined CONFIG_DMAR_TABLE && !defined STANDALONE_CT
 #define MAX_DMA_DBG_ENTRIES 5000
 struct dma_dbg_entry {
 	unsigned long long addr;
@@ -841,6 +842,9 @@ struct dma_dbg_entry {
 };
 
 void ath10k_dbg_dma_map(struct ath10k* ar, unsigned long long addr, unsigned long len, const char* dbg);
+#else
+#define ath10k_dbg_dma_map(a, b, c, d) /* NOP */
+#endif
 
 struct ath10k {
 	struct ath_common ath_common;
@@ -849,8 +853,10 @@ struct ath10k {
 	struct device *dev;
 	u8 mac_addr[ETH_ALEN];
 
+#if defined CONFIG_DMAR_TABLE && !defined STANDALONE_CT
 	unsigned int next_dma_dbg_idx;
 	struct dma_dbg_entry dma_dbg[MAX_DMA_DBG_ENTRIES];
+#endif
 
 	struct ieee80211_iface_combination if_comb[8];
 
