@@ -5,10 +5,27 @@
 
 void cfg80211_get_drvinfo(struct net_device *dev, struct ethtool_drvinfo *info)
 {
-	struct wireless_dev *wdev = dev->ieee80211_ptr;
+	struct wireless_dev *wdev;
+	struct device* wd;
 
-	strlcpy(info->driver, wiphy_dev(wdev->wiphy)->driver->name,
-		sizeof(info->driver));
+	if (WARN_ON(!dev))
+		return;
+
+	wdev = dev->ieee80211_ptr;
+	if (WARN_ON(!wdev))
+		return;
+
+	if (WARN_ON(!info))
+		return;
+
+	if (WARN_ON(!wdev->wiphy))
+		return;
+
+	wd = wiphy_dev(wdev->wiphy);
+	if (WARN_ON(!info))
+		return;
+
+	strlcpy(info->driver, wd->driver->name, sizeof(info->driver));
 
 	strlcpy(info->version, init_utsname()->release, sizeof(info->version));
 
@@ -18,7 +35,6 @@ void cfg80211_get_drvinfo(struct net_device *dev, struct ethtool_drvinfo *info)
 	else
 		strlcpy(info->fw_version, "N/A", sizeof(info->fw_version));
 
-	strlcpy(info->bus_info, dev_name(wiphy_dev(wdev->wiphy)),
-		sizeof(info->bus_info));
+	strlcpy(info->bus_info, dev_name(wd), sizeof(info->bus_info));
 }
 EXPORT_SYMBOL(cfg80211_get_drvinfo);
