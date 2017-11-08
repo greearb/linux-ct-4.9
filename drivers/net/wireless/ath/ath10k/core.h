@@ -1150,6 +1150,8 @@ struct ath10k {
 		u8 tx_sta_bw_mask; /* 0:  all, 0x1: 20Mhz, 0x2 40Mhz, 0x4 80Mhz */
 		bool allow_ibss_amsdu;
 		bool rifs_enable_override;
+		bool txbf_cv_msg;
+		bool rx_all_mgt;
 #define CT_DISABLE_20MHZ  0x1
 #define CT_DISABLE_40MHZ  0x2
 #define CT_DISABLE_80MHZ  0x4
