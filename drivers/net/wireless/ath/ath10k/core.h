@@ -1165,6 +1165,8 @@ struct ath10k {
 					  */
 		u32 ct_pshack;
 		u32 ct_csi;
+		u32 mu_sounding_timer_ms;
+		u32 su_sounding_timer_ms;
 	} eeprom_overrides;
 
 	/* must be last */
