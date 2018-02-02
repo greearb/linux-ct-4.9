@@ -2929,6 +2929,7 @@ void ath_tx_node_cleanup(struct ath_softc *sc, struct ath_node *an)
 	struct ath_txq *txq;
 	int tidno;
 
+	rcu_read_lock();
 	for (tidno = 0, tid = &an->tid[tidno];
 	     tidno < IEEE80211_NUM_TIDS; tidno++, tid++) {
 
@@ -2944,6 +2945,8 @@ void ath_tx_node_cleanup(struct ath_softc *sc, struct ath_node *an)
 
 		ath_txq_unlock(sc, txq);
 	}
+
+	rcu_read_unlock();
 }
 
 #ifdef CONFIG_ATH9K_TX99
