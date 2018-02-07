@@ -1987,6 +1987,7 @@ static void ath10k_core_restart(struct work_struct *work)
 	wake_up(&ar->htt.empty_tx_wq);
 	wake_up(&ar->wmi.tx_credits_wq);
 	wake_up(&ar->peer_mapping_wq);
+	cancel_work_sync(&ar->stop_scan_work);
 
 	mutex_lock(&ar->conf_mutex);
 
@@ -3051,6 +3052,7 @@ struct ath10k *ath10k_core_create(size_t priv_size, struct device *dev,
 
 	INIT_WORK(&ar->register_work, ath10k_core_register_work);
 	INIT_WORK(&ar->restart_work, ath10k_core_restart);
+	INIT_WORK(&ar->stop_scan_work, ath10k_wmi_stop_scan_work);
 
 	init_dummy_netdev(&ar->napi_dev);
 
