@@ -1146,6 +1146,8 @@ struct ath10k {
 	struct net_device napi_dev;
 	struct napi_struct napi;
 
+	struct work_struct stop_scan_work;
+
 	/* Index 0 is for 5Ghz, index 1 is for 2.4Ghz, CT firmware only. */
 	/* be sure to flush this to firmware after resets */
 	/* Includes various other backdoor hacks as well. */
