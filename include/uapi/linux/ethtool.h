@@ -1315,6 +1315,10 @@ struct ethtool_per_queue_op {
 #define ETHTOOL_SLINKSETTINGS	0x0000004d /* Set ethtool_link_settings */
 
 
+#define ETHTOOL_GSTATS2		0x0000ff01 /* get NIC-specific statistics
+					    * with ability to specify level
+					    */
+
 /* compatibility with older code */
 #define SPARC_ETH_GSET		ETHTOOL_GSET
 #define SPARC_ETH_SSET		ETHTOOL_SSET
