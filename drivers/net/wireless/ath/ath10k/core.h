@@ -1189,6 +1189,7 @@ struct ath10k {
 		bool rifs_enable_override;
 		bool txbf_cv_msg;
 		bool rx_all_mgt;
+		u8 disable_ibss_cca;
 		u8 rc_txbf_probe;
 #define CT_DISABLE_20MHZ  0x1
 #define CT_DISABLE_40MHZ  0x2
