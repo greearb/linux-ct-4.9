@@ -1588,6 +1588,8 @@ int cfg80211_validate_beacon_int(struct cfg80211_registered_device *rdev,
 	if (beacon_int < 10 || beacon_int > 10000)
 		return -EINVAL;
 
+	// TODO-BEN:  Need to disable this logic to allow different beacon intervals,
+	// or backport the upstream patches that make this configurable per driver.
 	list_for_each_entry(wdev, &rdev->wiphy.wdev_list, list) {
 		if (!wdev->beacon_interval)
 			continue;
