@@ -3536,6 +3536,7 @@ int ieee80211_check_combinations(struct ieee80211_sub_if_data *sdata,
 	struct ieee80211_chanctx *ctx;
 	int num_different_channels = 0;
 	int total = 1;
+	int err;
 
 	lockdep_assert_held(&local->chanctx_mtx);
 
@@ -3608,9 +3609,13 @@ int ieee80211_check_combinations(struct ieee80211_sub_if_data *sdata,
 	if (total == 1 && !radar_detect)
 		return 0;
 
-	return cfg80211_check_combinations(local->hw.wiphy,
-					   num_different_channels,
-					   radar_detect, num);
+	err = cfg80211_check_combinations(local->hw.wiphy,
+					  num_different_channels,
+					  radar_detect, num);
+	if (err != 0)
+		sdata_info(sdata, "cfg80211-check-combinations failed, err: %d\n", err);
+
+	return err;
 }
 
 static void
