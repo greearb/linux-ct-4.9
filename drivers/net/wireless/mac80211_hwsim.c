@@ -1123,7 +1123,10 @@ static void mac80211_hwsim_tx_frame_nl(struct ieee80211_hw *hw,
 		tx_attempts[i].idx = info->status.rates[i].idx;
 		tx_attempts[i].count = info->status.rates[i].count;
 		tx_attempts2[i].rc_flags = info->status.rates[i].flags;
-		tx_attempts2[i].power_level = data->power_level;
+		if (info->control.vif)
+			tx_attempts2[i].power_level = info->control.vif->bss_conf.txpower;
+		else
+			tx_attempts2[i].power_level = 0;
 	}
 
 	if (nla_put(skb, HWSIM_ATTR_TX_INFO,
